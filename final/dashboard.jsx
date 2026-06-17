@@ -30,20 +30,18 @@ const COLORS = {
   purple: "#a855f7",
   pink: "#ec4899",
   orange: "#f97316",
-  modelMiniMax: "#06b6d4",
-  modelKimi: "#a855f7",
-  modelQwen: "#f59e0b",
-  modelDeepSeek: "#10b981",
+  modelQwen: "#6366f1",
+  modelMiniMax: "#10b981",
+  modelDeepSeek: "#f59e0b",
 };
 
-const CHART_COLORS = ["#6366f1", "#06b6d4", "#f59e0b", "#10b981", "#a855f7", "#ec4899"];
+const CHART_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#06b6d4", "#a855f7", "#ec4899"];
 
 // ─── Model Definitions ───────────────────────────────────────────
 const MODELS = [
-  { id: "minimax-m3", name: "MiniMax M3", color: COLORS.modelMiniMax, role: "Long Context" },
-  { id: "kimi-k27", name: "Kimi K2.7", color: COLORS.modelKimi, role: "Code Gen" },
-  { id: "qwen-37max", name: "Qwen 3.7 Max", color: COLORS.modelQwen, role: "Structured Output" },
-  { id: "deepseek-v4pro", name: "DeepSeek V4 Pro", color: COLORS.modelDeepSeek, role: "Reasoning" },
+  { id: "qwen-37plus", name: "Qwen 3.7 Plus", color: COLORS.modelQwen, role: "Orchestrator" },
+  { id: "minimax-m27", name: "MiniMax M2.7", color: COLORS.modelMiniMax, role: "Long Context" },
+  { id: "deepseek-v4", name: "DeepSeek V4", color: COLORS.modelDeepSeek, role: "Reasoning" },
 ];
 
 // ─── Mock Data Generators ────────────────────────────────────────
@@ -62,34 +60,31 @@ const DAYS_30 = genDays(30);
 
 const costData = DAYS_30.map((day, i) => ({
   day,
-  MiniMax: +(1.2 + Math.random() * 2.5 + (i > 20 ? 1.5 : 0)).toFixed(2),
-  Kimi: +(2.0 + Math.random() * 3.0 + (i > 15 ? 1.0 : 0)).toFixed(2),
-  Qwen: +(1.5 + Math.random() * 2.0).toFixed(2),
+  Qwen: +(1.8 + Math.random() * 2.8 + (i > 20 ? 1.5 : 0)).toFixed(2),
+  MiniMax: +(1.0 + Math.random() * 2.0 + (i > 15 ? 0.8 : 0)).toFixed(2),
   DeepSeek: +(0.8 + Math.random() * 1.5).toFixed(2),
   total: 0,
-})).map((d) => ({ ...d, total: +(d.MiniMax + d.Kimi + d.Qwen + d.DeepSeek).toFixed(2) }));
+})).map((d) => ({ ...d, total: +(d.Qwen + d.MiniMax + d.DeepSeek).toFixed(2) }));
 
 const modelPerformance = [
-  { metric: "Latency", MiniMax: 78, Kimi: 85, Qwen: 82, DeepSeek: 90 },
-  { metric: "Cost Eff.", MiniMax: 92, Kimi: 65, Qwen: 78, DeepSeek: 95 },
-  { metric: "Quality", MiniMax: 80, Kimi: 88, Qwen: 90, DeepSeek: 93 },
-  { metric: "Reliability", MiniMax: 85, Kimi: 78, Qwen: 88, DeepSeek: 72 },
-  { metric: "Ctx Window", MiniMax: 98, Kimi: 82, Qwen: 68, DeepSeek: 68 },
-  { metric: "Tool Use", MiniMax: 90, Kimi: 60, Qwen: 95, DeepSeek: 65 },
+  { metric: "Latency", Qwen: 85, MiniMax: 78, DeepSeek: 90 },
+  { metric: "Cost Eff.", Qwen: 82, MiniMax: 92, DeepSeek: 88 },
+  { metric: "Quality", Qwen: 93, MiniMax: 80, DeepSeek: 91 },
+  { metric: "Reliability", Qwen: 90, MiniMax: 85, DeepSeek: 78 },
+  { metric: "Ctx Window", Qwen: 82, MiniMax: 98, DeepSeek: 72 },
+  { metric: "Tool Use", Qwen: 95, MiniMax: 88, DeepSeek: 70 },
 ];
 
 const latencyData = [
-  { name: "MiniMax M3", avg: 2.3, p95: 4.1, p99: 6.8 },
-  { name: "Kimi K2.7", avg: 1.8, p95: 3.2, p99: 5.1 },
-  { name: "Qwen 3.7 Max", avg: 2.0, p95: 3.8, p99: 5.9 },
-  { name: "DeepSeek V4 Pro", avg: 1.5, p95: 2.9, p99: 4.5 },
+  { name: "Qwen 3.7 Plus", avg: 1.9, p95: 3.5, p99: 5.5 },
+  { name: "MiniMax M2.7", avg: 2.3, p95: 4.1, p99: 6.8 },
+  { name: "DeepSeek V4", avg: 1.5, p95: 2.9, p99: 4.5 },
 ];
 
 const modelTableData = [
-  { name: "MiniMax M3", status: "healthy", uptime: 99.7, errorRate: 0.3, avgTokens: 45200, color: COLORS.modelMiniMax },
-  { name: "Kimi K2.7", status: "healthy", uptime: 99.2, errorRate: 0.8, avgTokens: 12800, color: COLORS.modelKimi },
-  { name: "Qwen 3.7 Max", status: "degraded", uptime: 98.5, errorRate: 1.5, avgTokens: 18400, color: COLORS.modelQwen },
-  { name: "DeepSeek V4 Pro", status: "healthy", uptime: 99.8, errorRate: 0.2, avgTokens: 22100, color: COLORS.modelDeepSeek },
+  { name: "Qwen 3.7 Plus", status: "healthy", uptime: 99.8, errorRate: 0.2, avgTokens: 24500, color: COLORS.modelQwen },
+  { name: "MiniMax M2.7", status: "healthy", uptime: 99.7, errorRate: 0.3, avgTokens: 45200, color: COLORS.modelMiniMax },
+  { name: "DeepSeek V4", status: "degraded", uptime: 98.9, errorRate: 1.1, avgTokens: 22100, color: COLORS.modelDeepSeek },
 ];
 
 const experienceGrowth = DAYS_30.map((day, i) => ({
@@ -142,16 +137,16 @@ const PHASE_NAMES = ["Scout", "Swarm", "Verify", "Learn"];
 const PHASE_COLORS = [COLORS.cyan, COLORS.purple, COLORS.amber, COLORS.green];
 
 const initialTasks = [
-  { id: "TSK-7821", desc: TASK_DESCRIPTIONS[0], phase: 3, elapsed: 42.3, models: ["DeepSeek V4 Pro", "Qwen 3.7 Max"], cost: 0.084 },
-  { id: "TSK-7822", desc: TASK_DESCRIPTIONS[1], phase: 1, elapsed: 8.7, models: ["MiniMax M3", "DeepSeek V4 Pro"], cost: 0.032 },
-  { id: "TSK-7823", desc: TASK_DESCRIPTIONS[2], phase: 2, elapsed: 23.1, models: ["Qwen 3.7 Max", "Kimi K2.7"], cost: 0.058 },
-  { id: "TSK-7824", desc: TASK_DESCRIPTIONS[3], phase: 0, elapsed: 2.1, models: ["DeepSeek V4 Pro"], cost: 0.005 },
-  { id: "TSK-7825", desc: TASK_DESCRIPTIONS[4], phase: 2, elapsed: 31.5, models: ["Kimi K2.7", "MiniMax M3"], cost: 0.071 },
-  { id: "TSK-7826", desc: TASK_DESCRIPTIONS[5], phase: 1, elapsed: 12.4, models: ["Kimi K2.7", "Qwen 3.7 Max", "DeepSeek V4 Pro"], cost: 0.045 },
-  { id: "TSK-7827", desc: TASK_DESCRIPTIONS[6], phase: 3, elapsed: 55.8, models: ["MiniMax M3"], cost: 0.093 },
-  { id: "TSK-7828", desc: TASK_DESCRIPTIONS[7], phase: 0, elapsed: 0.8, models: ["DeepSeek V4 Pro"], cost: 0.002 },
-  { id: "TSK-7829", desc: TASK_DESCRIPTIONS[8], phase: 1, elapsed: 6.2, models: ["MiniMax M3", "Qwen 3.7 Max"], cost: 0.019 },
-  { id: "TSK-7830", desc: TASK_DESCRIPTIONS[9], phase: 2, elapsed: 28.9, models: ["DeepSeek V4 Pro", "Qwen 3.7 Max"], cost: 0.067 },
+  { id: "TSK-7821", desc: TASK_DESCRIPTIONS[0], phase: 3, elapsed: 42.3, models: ["DeepSeek V4", "Qwen 3.7 Plus"], cost: 0.084 },
+  { id: "TSK-7822", desc: TASK_DESCRIPTIONS[1], phase: 1, elapsed: 8.7, models: ["MiniMax M2.7", "DeepSeek V4"], cost: 0.032 },
+  { id: "TSK-7823", desc: TASK_DESCRIPTIONS[2], phase: 2, elapsed: 23.1, models: ["Qwen 3.7 Plus", "MiniMax M2.7"], cost: 0.058 },
+  { id: "TSK-7824", desc: TASK_DESCRIPTIONS[3], phase: 0, elapsed: 2.1, models: ["DeepSeek V4"], cost: 0.005 },
+  { id: "TSK-7825", desc: TASK_DESCRIPTIONS[4], phase: 2, elapsed: 31.5, models: ["MiniMax M2.7", "Qwen 3.7 Plus"], cost: 0.071 },
+  { id: "TSK-7826", desc: TASK_DESCRIPTIONS[5], phase: 1, elapsed: 12.4, models: ["Qwen 3.7 Plus", "MiniMax M2.7", "DeepSeek V4"], cost: 0.045 },
+  { id: "TSK-7827", desc: TASK_DESCRIPTIONS[6], phase: 3, elapsed: 55.8, models: ["MiniMax M2.7"], cost: 0.093 },
+  { id: "TSK-7828", desc: TASK_DESCRIPTIONS[7], phase: 0, elapsed: 0.8, models: ["DeepSeek V4"], cost: 0.002 },
+  { id: "TSK-7829", desc: TASK_DESCRIPTIONS[8], phase: 1, elapsed: 6.2, models: ["MiniMax M2.7", "Qwen 3.7 Plus"], cost: 0.019 },
+  { id: "TSK-7830", desc: TASK_DESCRIPTIONS[9], phase: 2, elapsed: 28.9, models: ["DeepSeek V4", "Qwen 3.7 Plus"], cost: 0.067 },
 ];
 
 // ─── Utility Components ──────────────────────────────────────────
@@ -391,9 +386,8 @@ function CostAnalyticsTab() {
               labelStyle={{ color: COLORS.textDim }}
             />
             <Legend wrapperStyle={{ fontSize: 11, color: COLORS.textDim }} />
-            <Line type="monotone" dataKey="MiniMax" stroke={COLORS.modelMiniMax} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="Kimi" stroke={COLORS.modelKimi} strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="Qwen" stroke={COLORS.modelQwen} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="MiniMax" stroke={COLORS.modelMiniMax} strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="DeepSeek" stroke={COLORS.modelDeepSeek} strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
@@ -412,9 +406,8 @@ function CostAnalyticsTab() {
                 labelStyle={{ color: COLORS.textDim }}
               />
               <Legend wrapperStyle={{ fontSize: 11, color: COLORS.textDim }} />
-              <Bar dataKey="MiniMax" stackId="a" fill={COLORS.modelMiniMax} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="Kimi" stackId="a" fill={COLORS.modelKimi} radius={[0, 0, 0, 0]} />
               <Bar dataKey="Qwen" stackId="a" fill={COLORS.modelQwen} radius={[0, 0, 0, 0]} />
+              <Bar dataKey="MiniMax" stackId="a" fill={COLORS.modelMiniMax} radius={[0, 0, 0, 0]} />
               <Bar dataKey="DeepSeek" stackId="a" fill={COLORS.modelDeepSeek} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -474,10 +467,9 @@ function ModelPerformanceTab() {
               <Tooltip
                 contentStyle={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.borderLight}`, borderRadius: 8, fontSize: 12 }}
               />
-              <Radar name="MiniMax M3" dataKey="MiniMax" stroke={COLORS.modelMiniMax} fill={COLORS.modelMiniMax} fillOpacity={0.15} strokeWidth={2} />
-              <Radar name="Kimi K2.7" dataKey="Kimi" stroke={COLORS.modelKimi} fill={COLORS.modelKimi} fillOpacity={0.15} strokeWidth={2} />
-              <Radar name="Qwen 3.7 Max" dataKey="Qwen" stroke={COLORS.modelQwen} fill={COLORS.modelQwen} fillOpacity={0.15} strokeWidth={2} />
-              <Radar name="DeepSeek V4 Pro" dataKey="DeepSeek" stroke={COLORS.modelDeepSeek} fill={COLORS.modelDeepSeek} fillOpacity={0.15} strokeWidth={2} />
+              <Radar name="Qwen 3.7 Plus" dataKey="Qwen" stroke={COLORS.modelQwen} fill={COLORS.modelQwen} fillOpacity={0.15} strokeWidth={2} />
+              <Radar name="MiniMax M2.7" dataKey="MiniMax" stroke={COLORS.modelMiniMax} fill={COLORS.modelMiniMax} fillOpacity={0.15} strokeWidth={2} />
+              <Radar name="DeepSeek V4" dataKey="DeepSeek" stroke={COLORS.modelDeepSeek} fill={COLORS.modelDeepSeek} fillOpacity={0.15} strokeWidth={2} />
               <Legend wrapperStyle={{ fontSize: 11, color: COLORS.textDim }} />
             </RadarChart>
           </ResponsiveContainer>
@@ -552,7 +544,7 @@ function ModelPerformanceTab() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {MODELS.map((m) => {
           const row = modelTableData.find((x) => x.name === m.name);
           return (
@@ -637,11 +629,11 @@ function ExperienceBaseTab() {
                   <td className="py-3 px-4">
                     <span className="px-2 py-1 rounded text-xs" style={{
                       backgroundColor:
-                        e.category === "code" ? COLORS.modelKimi + "22" :
+                        e.category === "code" ? COLORS.accent + "22" :
                         e.category === "creative" ? COLORS.pink + "22" :
                         COLORS.modelDeepSeek + "22",
                       color:
-                        e.category === "code" ? COLORS.modelKimi :
+                        e.category === "code" ? COLORS.accent :
                         e.category === "creative" ? COLORS.pink :
                         COLORS.modelDeepSeek,
                     }}>

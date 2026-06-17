@@ -191,7 +191,7 @@ volumes:
 | **公式** | `per_model_p50 = percentile(model_call_latency, 0.50) grouped by model` |
 | **InfluxDB 查詢** | `from(bucket:"swarm_metrics") \|> range(start: -1h) \|> filter(fn: (r) => r._measurement == "model_call") \|> group(columns: ["model"]) \|> quantile(q: 0.50)` |
 | **告警閾值** | 任何模型 P95 > 20,000ms |
-| **標籤** | `model`（deepseek-v4-pro / kimi-k27-code / qwen-37-max / minimax-m3）、`call_role`（orchestrator/worker/verifier/fuser） |
+| **標籤** | `model`（qwen-37-plus / minimax-m27 / deepseek-v4）、`call_role`（orchestrator/worker/verifier/fuser） |
 
 #### 2.1.4 每任務成本
 
@@ -209,10 +209,9 @@ volumes:
 ```python
 # 每模型每百萬 token 定價（CNY）
 MODEL_PRICING = {
-    "deepseek-v4-pro": {"input": 3.0,  "output": 6.0},   # 最便宜
-    "kimi-k27-code":   {"input": 24.0, "output": 24.0},
-    "qwen-37-max":     {"input": 8.0,  "output": 32.0},
-    "minimax-m3":      {"input": 2.0,  "output": 8.0},   # 長文本性價比高
+    "qwen-37-plus":   {"input": 4.0,  "output": 16.0},  # Orchestrator + Worker（結構化輸出、Judge）
+    "minimax-m27":    {"input": 2.0,  "output": 8.0},   # Worker（長上下文、文檔分析、性價比高）
+    "deepseek-v4":    {"input": 3.0,  "output": 6.0},   # Worker（深度推理、程式碼生成、最便宜）
 }
 
 def compute_cost(model: str, input_tokens: int, output_tokens: int) -> float:
@@ -547,7 +546,7 @@ from(bucket: "swarm_metrics")
           },
           "model": {
             "type": "string",
-            "enum": ["deepseek-v4-pro", "kimi-k27-code", "qwen-37-max", "minimax-m3"]
+            "enum": ["qwen-37-plus", "minimax-m27", "deepseek-v4"]
           },
           "call_role": {
             "type": "string",
@@ -780,7 +779,7 @@ from(bucket: "swarm_metrics")
     "timestamp": { "type": "string", "format": "date-time" },
     "model": {
       "type": "string",
-      "enum": ["deepseek-v4-pro", "kimi-k27-code", "qwen-37-max", "minimax-m3"]
+      "enum": ["qwen-37-plus", "minimax-m27", "deepseek-v4"]
     },
     "call_role": {
       "type": "string",
@@ -858,10 +857,9 @@ class EventType(str, Enum):
 
 
 class ModelName(str, Enum):
-    DEEPSEEK_V4_PRO = "deepseek-v4-pro"
-    KIMI_K27_CODE = "kimi-k27-code"
-    QWEN_37_MAX = "qwen-37-max"
-    MINIMAX_M3 = "minimax-m3"
+    QWEN_37_PLUS = "qwen-37-plus"
+    MINIMAX_M27 = "minimax-m27"
+    DEEPSEEK_V4 = "deepseek-v4"
 
 
 class CallRole(str, Enum):
@@ -1131,9 +1129,9 @@ def event_to_influx_points(event: TaskCompletedEvent) -> list[Point]:
 | ┌─ Active Tasks ──────────────────────────────────────────────┐   |
 | │                                                               │   |
 | │  Task #a3f2  [██████████░░░░░░░░░░] 62%  Verify  8.2s       │   |
-| │    ├─ Scout    ✅ 1.2s   (DeepSeek V4 Pro, template: code-review)
-| │    ├─ Swarm   ✅ 4.5s   (Kimi ∥ DeepSeek ∥ Qwen, 3 workers) │   |
-| │    ├─ Verify  🔄 2.5s   (Qwen 3.7 Max cross-verifying...)   │   |
+| │    ├─ Scout    ✅ 1.2s   (Qwen 3.7 Plus, template: code-review)
+| │    ├─ Swarm   ✅ 4.5s   (Qwen ∥ MiniMax ∥ DeepSeek, 3 workers) │   |
+| │    ├─ Verify  🔄 2.5s   (Qwen 3.7 Plus cross-verifying...)  │   |
 | │    ├─ Fuse    ⏳ waiting                                     │   |
 | │    └─ Learn   ⏳ waiting                                     │   |
 | │                                                               │   |
@@ -1150,10 +1148,10 @@ def event_to_influx_points(event: TaskCompletedEvent) -> list[Point]:
 | └───────────────────────────────────────────────────────────────┘  |
 |                                                                    |
 | ┌─ Event Stream (live) ────────────────────────────────────────┐  |
-| │ 14:32:05 [model_call] Task #a3f2: qwen-37-max verifier ✅ 2.1s│  |
+| │ 14:32:05 [model_call] Task #a3f2: qwen-37-plus verifier ✅ 2.1s │  |
 | │ 14:32:03 [phase]      Task #a3f2: verify started              │  |
-| │ 14:31:58 [model_call] Task #a3f2: deepseek-v4-pro worker ✅ 3.8s│  |
-| │ 14:31:58 [model_call] Task #a3f2: kimi-k27-code worker ✅ 4.2s │  |
+| │ 14:31:58 [model_call] Task #a3f2: deepseek-v4 worker ✅ 3.8s   │  |
+| │ 14:31:58 [model_call] Task #a3f2: minimax-m27 worker ✅ 4.2s   │  |
 | │ 14:31:55 [phase]      Task #a3f2: swarm started (3 workers)   │  |
 | └───────────────────────────────────────────────────────────────┘  |
 +==================================================================+
@@ -1197,10 +1195,10 @@ def event_to_influx_points(event: TaskCompletedEvent) -> list[Point]:
 | ┌─ Per-Model Cost Breakdown ────┐  ┌─ Per-Phase Cost ──────────┐  |
 | │ (Pie Chart)                   │  │ (Stacked Bar)              │  |
 | │                                │  │                            │  |
-| │   Qwen 3.7 Max    42%  ¥7.69 │  │ Scout  8%   (Decompose)   │  |
-| │   Kimi K2.7 Code  28%  ¥5.13 │  │ Swarm  65%  (Workers)     │  |
-| │   DeepSeek V4 Pro 18%  ¥3.30 │  │ Verify 18%  (Cross-ver.)  │  |
-| │   MiniMax M3      12%  ¥2.20 │  │ Fuse   9%   (Synthesis)   │  |
+| │   Qwen 3.7 Plus   48%  ¥8.80 │  │ Scout  8%   (Decompose)   │  |
+| │   DeepSeek V4     30%  ¥5.50 │  │ Swarm  65%  (Workers)     │  |
+| │   MiniMax M2.7    22%  ¥4.02 │  │ Verify 18%  (Cross-ver.)  │  |
+| │                                │  │ Fuse   9%   (Synthesis)   │  |
 | └────────────────────────────────┘  └────────────────────────────┘  |
 |                                                                    |
 | ┌─ Top 10 Costliest Tasks ─────────────────────────────────────┐  |
@@ -1228,24 +1226,22 @@ def event_to_influx_points(event: TaskCompletedEvent) -> list[Point]:
 ```
 +==================================================================+
 | Model Health Overview                                              |
-| 🟢 DeepSeek V4 Pro  🟢 Kimi K2.7  🟡 Qwen 3.7 Max  🟢 MiniMax  |
+| 🟢 Qwen 3.7 Plus  🟢 MiniMax M2.7  🟡 DeepSeek V4              |
 +==================================================================+
 |                                                                    |
 | ┌─ Latency Comparison (P50 / P95) ─────────────────────────────┐  |
 | │                                                                │  |
-| │  DeepSeek V4 Pro  │████████░░│ P50: 1.8s  P95: 4.2s         │  |
-| │  Kimi K2.7 Code   │██████████████░░░░│ P50: 2.5s  P95: 7.1s │  |
-| │  Qwen 3.7 Max     │████████████████░░░░│ P50: 3.1s P95: 8.5s│  |
-| │  MiniMax M3       │████████████░░░░│ P50: 2.2s  P95: 5.8s   │  |
+| │  Qwen 3.7 Plus  │████████████░░░░│ P50: 2.3s  P95: 6.0s   │  |
+| │  MiniMax M2.7   │████████████░░░░│ P50: 2.2s  P95: 5.8s   │  |
+| │  DeepSeek V4    │████████░░│ P50: 1.8s  P95: 4.2s         │  |
 | └────────────────────────────────────────────────────────────────┘  |
 |                                                                    |
 | ┌─ Error Rate (5m rolling) ──┐  ┌─ Quality Score ──────────────┐  |
 | │ (Line Chart, per model)    │  │ (Verification pass rate)      │  |
 | │                             │  │                               │  |
-| │ DeepSeek  0.2%  ✅         │  │ DeepSeek  89%  ✅            │  |
-| │ Kimi      0.5%  ✅         │  │ Kimi      92%  ✅            │  |
-| │ Qwen      2.1%  🟡         │  │ Qwen      85%  🟡            │  |
+| │ Qwen      0.3%  ✅         │  │ Qwen      91%  ✅            │  |
 | │ MiniMax   0.1%  ✅         │  │ MiniMax   88%  ✅            │  |
+| │ DeepSeek  2.1%  🟡         │  │ DeepSeek  85%  🟡            │  |
 | └─────────────────────────────┘  └───────────────────────────────┘  |
 |                                                                    |
 | ┌─ Token Usage Trend (1h) ─────────────────────────────────────┐  |
